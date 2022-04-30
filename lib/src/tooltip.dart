@@ -11,6 +11,6 @@ class PDFViewerTooltip {
       this.previous = "Previous",
       this.next = "Next",
       this.last = "Last",
-      this.pick = "Pick a page",
+      this.pick = "Выберите номер страницы",
       this.jump = "Jump"});
 }

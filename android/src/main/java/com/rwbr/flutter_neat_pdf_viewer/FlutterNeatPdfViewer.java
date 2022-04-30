@@ -1,5 +1,7 @@
 package com.rwbr.flutter_neat_pdf_viewer;
 
+import android.annotation.SuppressLint;
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -12,6 +14,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FilenameFilter;
 
+import io.flutter.embedding.engine.plugins.FlutterPlugin;
 import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler;
@@ -23,11 +26,15 @@ import android.os.HandlerThread;
 import android.os.Process;
 import android.os.Handler;
 
-/**
- * FlutterNeatPdfViewer
- */
-public class FlutterNeatPdfViewer implements MethodCallHandler {
-    private static Registrar instance;
+import androidx.annotation.NonNull;
+
+
+public class FlutterNeatPdfViewer implements FlutterPlugin, MethodCallHandler {
+
+    private Context context;
+    private MethodChannel channel;
+
+
     private HandlerThread handlerThread;
     private Handler backgroundHandler;
     private final Object pluginLocker = new Object();
@@ -36,10 +43,27 @@ public class FlutterNeatPdfViewer implements MethodCallHandler {
     /**
      * Plugin registration.
      */
+    public FlutterNeatPdfViewer() {}
+
+    @SuppressWarnings("deprecation")
     public static void registerWith(Registrar registrar) {
-        final MethodChannel channel = new MethodChannel(registrar.messenger(), "flutter_plugin_pdf_viewer");
-        instance = registrar;
-        channel.setMethodCallHandler(new FlutterNeatPdfViewer());
+        FlutterNeatPdfViewer instance=new FlutterNeatPdfViewer();
+        instance.channel = new MethodChannel(registrar.messenger(), "flutter_plugin_pdf_viewer");
+        instance.context = registrar.context();
+        instance.channel.setMethodCallHandler(instance);
+    }
+
+    @Override
+    public void onAttachedToEngine(@NonNull FlutterPluginBinding binding) {
+        channel = new MethodChannel(binding.getBinaryMessenger(), "flutter_plugin_pdf_viewer");
+        context = binding.getApplicationContext();
+        channel.setMethodCallHandler(this);
+    }
+
+    @Override
+    public void onDetachedFromEngine(@NonNull FlutterPluginBinding binding) {
+        channel.setMethodCallHandler(null);
+        channel = null;
     }
 
     @Override
@@ -84,6 +108,7 @@ public class FlutterNeatPdfViewer implements MethodCallHandler {
                 });
     }
 
+    @SuppressLint("DefaultLocale")
     private String getNumberOfPages(String filePath) {
         File pdf = new File(filePath);
         try {
@@ -100,7 +125,7 @@ public class FlutterNeatPdfViewer implements MethodCallHandler {
 
     private boolean clearCacheDir() {
         try {
-            File directory = instance.context().getCacheDir();
+            File directory = context.getCacheDir();
             FilenameFilter myFilter = new FilenameFilter() {
                 @Override
                 public boolean accept(File dir, String name) {
@@ -130,8 +155,8 @@ public class FlutterNeatPdfViewer implements MethodCallHandler {
         String fileNameOnly = getFileNameFromPath(name);
         File file;
         try {
-            String fileName = String.format("%s-%d.png", fileNameOnly, page);
-            file = File.createTempFile(fileName, null, instance.context().getCacheDir());
+            @SuppressLint("DefaultLocale") String fileName = String.format("%s-%d.png", fileNameOnly, page);
+            file = File.createTempFile(fileName, null, context.getCacheDir());
             FileOutputStream out = new FileOutputStream(file);
             bmp.compress(Bitmap.CompressFormat.PNG, 100, out);
             out.flush();
@@ -154,8 +179,8 @@ public class FlutterNeatPdfViewer implements MethodCallHandler {
 
             PdfRenderer.Page page = renderer.openPage(--pageNumber);
 
-            double width = instance.activity().getResources().getDisplayMetrics().densityDpi * page.getWidth();
-            double height = instance.activity().getResources().getDisplayMetrics().densityDpi * page.getHeight();
+            double width = context.getResources().getDisplayMetrics().densityDpi * page.getWidth();
+            double height = context.getResources().getDisplayMetrics().densityDpi * page.getHeight();
             final double docRatio = width / height;
 
             width = 2048;
@@ -181,4 +206,6 @@ public class FlutterNeatPdfViewer implements MethodCallHandler {
 
         return null;
     }
+
+
 }
