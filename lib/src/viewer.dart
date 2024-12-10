@@ -205,7 +205,7 @@ class _PDFViewerState extends State<PDFViewer> {
 
   _pickPage() {
     Picker(
-      cancelText: "Отмена",
+        cancelText: "Отмена",
         confirmText: "Применить",
         adapter: NumberPickerAdapter(data: [
           NumberPickerColumn(

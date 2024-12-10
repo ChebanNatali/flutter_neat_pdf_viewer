@@ -1,6 +1,6 @@
 name: flutter_neat_pdf_viewer_example
 description: Demonstrates how to use the flutter_neat_pdf_viewer plugin.
-publish_to: "none" # Remove this line if you wish to publish to pub.dev
+publish_to: "none" # Remove this line if you wish to publish to pub.devfvm
 version: 1.0.0+1
 
 environment:
